@@ -66,3 +66,11 @@ void Cache::print() {
     cout << "numLine:\t" << numLine << endl;
     cout << "numSet: \t" << numSet << endl;
 }
+
+int Cache::search(int *idx, Addr addr) {
+    CacheUnit bias = getBias(addr);
+    CacheUnit tag = getTag(addr);
+    CacheUnit set = getSet(addr);
+
+    
+}

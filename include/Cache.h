@@ -36,7 +36,8 @@ public:
     int     numBlock;   // blocks per line
     int     numLine;    // lines per set
     int     numSet;     // number of sets
-    // search for addr, if success, return 
+    // search for addr, if success, return idx, else -1
+    int search(int *idx, Addr addr);
 
 private:
     CacheBlock* blocks;
