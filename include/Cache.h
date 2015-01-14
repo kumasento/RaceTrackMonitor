@@ -16,19 +16,27 @@ struct CacheBlock {
     inline CacheUnit getValid() { return valid; }
 };
 
-
 class Cache {
 public:
+    Cache() {}
     Cache(int cacheSize,
           int blockSize,
           int numWay,
           int biasBitWidth);
 
-    int toCacheIdx(int sid, int lid, int bid);
+    void print();
+
+    void toIdx(int* idx, int* sid, int* lid, int* bid);
+    void toDim3(int* idx, int *sid, int* lid, int* bid);
     CacheUnit getBias(Addr addr);
     CacheUnit getTag(Addr addr);
     CacheUnit getSet(Addr addr);
 
+    // search for tag
+    int     numBlock;   // blocks per line
+    int     numLine;    // lines per set
+    int     numSet;     // number of sets
+    // search for addr, if success, return 
 
 private:
     CacheBlock* blocks;
@@ -38,10 +46,6 @@ private:
     CacheUnit   setmask;
     CacheUnit   tagmask;
 
-    // search for tag
-    int     numBlock;   // blocks per line
-    int     numLine;    // lines per set
-    int     numSet;     // number of sets
 };
 
 

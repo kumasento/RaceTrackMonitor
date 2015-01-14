@@ -1,13 +1,29 @@
+#include <iostream>
 #include <cstdlib>
 
 #include "Cache.h"
 
 #define MASK(x, m) ((x) & (m))
 
-int Cache::toCacheIdx(int sid, int lid, int bid) {
-    return  bid + 
-            lid * numBlock + 
-            sid * numBlock * numLine;
+using namespace std;
+
+void Cache::toIdx(int* idx, int* sid, int* lid, int* bid) {
+    if (*bid >= numBlock || *lid >= numLine || *sid >= numSet)
+        *idx = -1;
+    else
+        *idx =  *bid + 
+                *lid * numBlock + 
+                *sid * numBlock * numLine;
+}
+void Cache::toDim3(int* idx, int *sid, int *lid, int *bid) {
+    if (*idx == -1 || *idx > numBlock * numLine * numSet)
+        *sid = *lid = *bid = -1;
+    else {
+        *sid = *idx / (numBlock * numLine);
+        *lid = *idx % (numBlock * numLine);
+        *bid = *lid % numBlock;
+        *lid = *lid / numBlock;
+    }
 }
 
 // Please take care of the div ops
@@ -19,9 +35,12 @@ Cache::Cache(int cacheSize,
 
     int blocksPerLine = 1<<biasBitWidth;
 
-    numBlock    = cacheSize / blockSize;
-    numLine     = numBlock / blocksPerLine;
-    numSet      = numLine / numWay;
+    numLine     = numWay;
+    numBlock    = blocksPerLine;
+
+    int totalBlock    = cacheSize / blockSize;
+    int totalLine     = totalBlock / blocksPerLine;
+    numSet      = totalLine / numWay;
 
     blocks   = (CacheBlock*) malloc(sizeof(CacheBlock)*numBlock);
 
@@ -42,3 +61,8 @@ CacheUnit Cache::getTag(Addr addr) {
     return tagmask & addr;
 }
 
+void Cache::print() {
+    cout << "numBlock:\t" << numBlock << endl;
+    cout << "numLine:\t" << numLine << endl;
+    cout << "numSet: \t" << numSet << endl;
+}
