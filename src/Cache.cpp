@@ -3,27 +3,37 @@
 
 #include "Cache.h"
 
-#define MASK(x, m) ((x) & (m))
-
 using namespace std;
 
-void Cache::toIdx(int* idx, int* sid, int* lid, int* bid) {
-    if (*bid >= numBlock || *lid >= numLine || *sid >= numSet)
-        *idx = -1;
-    else
-        *idx =  *bid + 
-                *lid * numBlock + 
-                *sid * numBlock * numLine;
+int shiftCount(unsigned u) {
+    int count = 0;
+    for (; count < 32 && (u & 1) == 0; count ++, u >>= 1);
+
+    return count;
 }
-void Cache::toDim3(int* idx, int *sid, int *lid, int *bid) {
-    if (*idx == -1 || *idx > numBlock * numLine * numSet)
-        *sid = *lid = *bid = -1;
+
+CacheIdx Cache::toIdx(CacheDim3 dim3) {
+    CacheIdx idx;
+    if (dim3.b >= numBlock || dim3.l >= numLine || dim3.s >= numSet)
+        idx = -1;
+    else
+        idx =   dim3.b + 
+                dim3.l * numBlock + 
+                dim3.s * numBlock * numLine;
+    return idx;
+}
+CacheDim3 Cache::toDim3(CacheIdx idx) {
+    // if idx is invalid or idx is above boundary
+    int s, l, b;
+    if (idx == -1 || idx > numBlock * numLine * numSet)
+        s = l = b = -1;
     else {
-        *sid = *idx / (numBlock * numLine);
-        *lid = *idx % (numBlock * numLine);
-        *bid = *lid % numBlock;
-        *lid = *lid / numBlock;
+        s = idx / (numBlock * numLine);
+        l = idx % (numBlock * numLine);
+        b = l % numBlock;
+        l = l / numBlock;
     }
+    return CacheDim3(s, l, b);
 }
 
 // Please take care of the div ops
@@ -42,7 +52,12 @@ Cache::Cache(int cacheSize,
     int totalLine     = totalBlock / blocksPerLine;
     numSet      = totalLine / numWay;
 
-    blocks   = (CacheBlock*) malloc(sizeof(CacheBlock)*numBlock);
+    biasLen  = biasBitWidth;
+    setLen   = shiftCount(numSet) + biasBitWidth;
+
+    size     = numLine * numBlock * numSet;
+
+    blocks   = (CacheBlock*) malloc(sizeof(CacheBlock)*size);
 
     biasmask = (1<<biasBitWidth)-1;
     setmask  = (numSet-1) << biasBitWidth;
@@ -54,23 +69,104 @@ CacheUnit Cache::getBias(Addr addr) {
 }
 
 CacheUnit Cache::getSet(Addr addr) {
-    return setmask & addr;
+    return (setmask & addr) >> biasLen;
 }
 
 CacheUnit Cache::getTag(Addr addr) {
-    return tagmask & addr;
+    return (tagmask & addr) >> setLen;
 }
 
-void Cache::print() {
+void Cache::print_info() {
     cout << "numBlock:\t" << numBlock << endl;
     cout << "numLine:\t" << numLine << endl;
     cout << "numSet: \t" << numSet << endl;
 }
 
-int Cache::search(int *idx, Addr addr) {
-    CacheUnit bias = getBias(addr);
-    CacheUnit tag = getTag(addr);
-    CacheUnit set = getSet(addr);
+// I don't know whether should this function contains the write-back step
+int Cache::alloc(CacheIdx idx, CacheUnit tag, Timer timer) {
+    blocks[idx].valid = 1;
+    blocks[idx].tag = tag;
+    blocks[idx].access_time = timer.time; // initialize time
 
-    
+    return 1;
 }
+
+CacheIdx Cache::search(Addr addr) {
+    CacheUnit set, tag, bias;
+
+    tag = getTag(addr);
+    set = getSet(addr);
+    bias = getBias(addr);
+
+    CacheIdx idx = -1; 
+    // search in set
+    for (int i = 0; i < numLine; i++) 
+        for (int j = 0; j < numBlock; j++) {
+            idx = toIdx(CacheDim3(set, i, j));
+            if (idx != -1) { 
+                if (blocks[idx].valid && blocks[idx].tag == tag) 
+                    return idx;
+            }
+            else {
+                // exception
+            }
+        }
+    return -1;
+}
+
+CacheIdx Cache::replace(Addr addr, Timer timer) {
+    CacheUnit set, tag;
+
+    tag = getTag(addr);
+    set = getSet(addr);
+
+    CacheIdx minIdx = toIdx(CacheDim3(set, 0, 0));
+    TimeType minTime = blocks[minIdx].access_time;
+
+    // find the minimal time
+    // GODDAMN NAIVE
+    for (int i = 0; i < numLine; i++)
+        for (int j = 0; j < numBlock; j++) {
+            CacheIdx idx = toIdx(CacheDim3(set, i, j));
+            TimeType t = blocks[idx].access_time;
+            if (minTime > t) {
+                minTime = t;
+                minIdx = idx;
+            }
+        }
+
+    // cout << "replaced tag: " << blocks[minIdx].tag << endl;
+
+    alloc(minIdx, tag, Timer(minTime));
+
+    return minIdx;
+}
+
+Timer Cache::access(CacheIdx idx, Timer timer) {
+    // do the racetrack
+    //
+
+
+    blocks[idx].access_time = timer.time; // update the latest access time
+
+    return timer;
+}
+
+Timer Cache::read(Addr addr, Timer timer) {
+    CacheIdx idx = search(addr);
+
+    if (idx == -1) {
+        cout << "Miss" << endl;
+        idx = replace(addr, timer);     
+    }
+    else
+        cout << "Hit" << endl;
+
+    // at this place, should call the RaceTrack function 
+    // shift will take time
+    // this is a wrapper: access
+    timer = access(idx, timer);
+    
+    return timer;
+}
+

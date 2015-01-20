@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "Timer.h"
+
 // tag bits couldn't be longer than 32bits
 typedef uint32_t CacheUnit;
 
@@ -11,9 +13,18 @@ typedef uint32_t Addr;
 struct CacheBlock {
     CacheUnit   valid;
     CacheUnit   tag;
+    TimeType    access_time;
 
     inline CacheUnit getTag() { return tag; }
     inline CacheUnit getValid() { return valid; }
+};
+
+int shiftCount(unsigned u);
+
+typedef int CacheIdx;
+struct CacheDim3 {
+    int s, l, b;
+    CacheDim3(int s, int l, int b): s(s), l(l), b(b) {}
 };
 
 class Cache {
@@ -24,10 +35,13 @@ public:
           int numWay,
           int biasBitWidth);
 
-    void print();
+    void print_info();
+    void print_status();
 
-    void toIdx(int* idx, int* sid, int* lid, int* bid);
-    void toDim3(int* idx, int *sid, int* lid, int* bid);
+    // 2 kinds of cache locating method
+    CacheIdx toIdx(CacheDim3 dim3);
+    CacheDim3 toDim3(CacheIdx idx);
+
     CacheUnit getBias(Addr addr);
     CacheUnit getTag(Addr addr);
     CacheUnit getSet(Addr addr);
@@ -36,8 +50,24 @@ public:
     int     numBlock;   // blocks per line
     int     numLine;    // lines per set
     int     numSet;     // number of sets
+    int     size;       // general size(num of blocks)
+
+    // redundant information
+    int     biasLen;
+    int     setLen;
+
+    // all these method use the CacheIdx
     // search for addr, if success, return idx, else -1
-    int search(int *idx, Addr addr);
+    CacheIdx search(Addr addr);
+
+    // operation with timer
+    Timer read(Addr addr, Timer timer);
+    Timer write(Addr addr, Timer timer); // we assume the write content will not work
+    Timer access(CacheIdx idx, Timer timer);
+    
+    CacheIdx replace(Addr addr, Timer timer); // return the allocated place
+
+    int alloc(CacheIdx idx, CacheUnit tag, Timer timer);
 
 private:
     CacheBlock* blocks;
@@ -46,9 +76,7 @@ private:
     CacheUnit   biasmask;
     CacheUnit   setmask;
     CacheUnit   tagmask;
-
 };
-
 
 
 #endif 
