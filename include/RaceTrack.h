@@ -41,6 +41,7 @@ struct RTCoord {
 
 class RaceTrack {
 public:
+    RaceTrack() {};
     RaceTrack(int numDomain,
               int numTrack,
               int size,
@@ -54,7 +55,6 @@ public:
     Timer access(RTPos pos, int gid, RTPortType type, Timer timer);
     Timer move(RTPos src, RTPos dst, int gid, Timer timer);
 
-private:
     int numDomain;
     int numTrack;
     int numGroup;
@@ -62,6 +62,7 @@ private:
 
     TimeType shiftTime;
 
+private:
     vector<RTGroup> groups;
 };
 

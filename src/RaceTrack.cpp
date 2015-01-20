@@ -78,8 +78,6 @@ Timer RaceTrack::move(RTPos src, RTPos dst, int gid, Timer timer) {
 
 Timer RaceTrack::access(RTPos pos, int gid, RTPortType type, Timer timer) {
 
-    int moveCount = 0;
-
     // always choose the nearest?
     if (gid < 0 || gid >= numGroup) {
         // exception

@@ -11,7 +11,7 @@ CC=gcc
 
 main:
 	$(CXX) $(WALL) \
-		$(SRC)/Cache.cpp $(SRC)/RaceTrack.cpp $(SRC)/Translator.cpp \
+		$(SRC)/Cache.cpp $(SRC)/RaceTrack.cpp $(SRC)/Monitor.cpp \
 		main.cpp -o main.o \
 		-I$(INCLUDE)
 

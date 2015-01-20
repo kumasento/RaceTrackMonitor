@@ -170,3 +170,22 @@ Timer Cache::read(Addr addr, Timer timer) {
     return timer;
 }
 
+Timer Cache::write(Addr addr, Timer timer) {
+    CacheIdx idx = search(addr);
+
+    if (idx == -1) {
+        cout << "Miss" << endl;
+        idx = replace(addr, timer);     
+    
+        
+    }
+    else
+        cout << "Hit" << endl;
+
+    // at this place, should call the RaceTrack function 
+    // shift will take time
+    // this is a wrapper: access
+    timer = access(idx, timer);
+    
+    return timer;
+}

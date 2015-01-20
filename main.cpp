@@ -3,6 +3,7 @@
 
 #include "RaceTrack.h"
 #include "Cache.h"
+#include "Monitor.h"
 
 using namespace std;
 
@@ -34,17 +35,6 @@ int main(int argc, char *argv[]) {
 
     Timer timer = Timer(0);
 
-    /*
-    for (int n = 0; n < 2; n++)
-        for (int i = 0; i < cache.numLine - 1; i++) {
-            Addr ta = addrGen(tag+i, set, bias, cache);
-            cout << cache.getTag(ta) << endl;
-
-            // sim:
-            timer.time += 1;
-            cache.read(ta, timer);
-        }
-    */
     vector<RTPortPos> r(0), w(0), rw(4);
     rw[0] = 0;
     rw[1] = 16;
@@ -60,7 +50,17 @@ int main(int argc, char *argv[]) {
     cout << timer.time << endl;
     timer = rt.read(16, 0, timer);
     cout << timer.time << endl;
+
+    Monitor monitor(cache, rt);
     
+    for (int n = 0; n < 2; n++)
+        for (int i = 0; i < cache.numLine - 1; i++) {
+            Addr ta = addrGen(tag+i, set, bias, cache);
+
+            timer = monitor.cache_read(ta, timer);
+
+            cout << timer.time << endl;
+        }
 
 
     return 0;
