@@ -5,13 +5,14 @@ SRC=src
 UTILDIR=utils
 
 WALL=-Wdangling-else 
+DEFINE=-DDEBUG
 
 CXX=g++
 CC=gcc
 
 main:
-	$(CXX) $(WALL) \
-		$(SRC)/Cache.cpp $(SRC)/RaceTrack.cpp $(SRC)/Monitor.cpp \
+	$(CXX) $(WALL) $(DEFINE) \
+		$(SRC)/Cache.cpp $(SRC)/RaceTrack.cpp $(SRC)/Monitor.cpp $(SRC)/Scheduler.cpp \
 		main.cpp -o main.o \
 		-I$(INCLUDE)
 

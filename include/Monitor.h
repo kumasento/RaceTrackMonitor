@@ -12,6 +12,7 @@ typedef enum {
 
 class Monitor {
 public:
+    Monitor() {}
     Monitor(Cache &cache, RaceTrack &rt) {
         this->cache = cache;
         this->rt = rt;
