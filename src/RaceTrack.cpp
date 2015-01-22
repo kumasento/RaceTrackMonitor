@@ -46,10 +46,23 @@ RTPortPos RTGroup::findMinDis(RTPos pos, vector<RTPortPos> ports) {
 
     RTPos minPos;
     RTPos minDis = -1;
-    
+
+    // get the average distance between ports
+    sort(ports.begin(), ports.end());
+    RTPos avg = 0;
+    for (int i = 1; i < ports.size(); i++)
+        avg += abs(ports[i] - ports[i-1]);
+    avg /= (ports.size()-1);
+
     for (int i = 0; i < ports.size(); i++) {
         RTPortPos port = ports[i];
         RTPos dis = abs(port - stdpos);
+
+#ifndef NOHEADRESTRICT 
+        if (abs(head + port - stdpos) > avg)
+            continue;
+#endif
+ 
         if (minDis == -1 || minDis > dis) {
             minDis = dis;
             minPos = port;
