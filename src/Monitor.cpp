@@ -55,6 +55,7 @@ Timer Monitor::cache_read(Addr addr, Timer timer) {
     if (idx == -1) {
         idx = cache.replace(addr, timer);
         // update cache content
+        timer = cache.access(idx, timer);
         timer = rt_write(translate(idx), timer);
     #ifdef DEBUG
         cout << "[Monitor] Cache Replaced: " 
@@ -76,6 +77,7 @@ Timer Monitor::cache_write(Addr addr, Timer timer) {
     if (idx == -1) {
         idx = cache.replace(addr, timer);
         // update cache content
+        timer = cache.access(idx, timer);
         timer = rt_write(translate(idx), timer);
     }
 

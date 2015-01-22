@@ -154,7 +154,7 @@ CacheIdx Cache::replace(Addr addr, Timer timer) {
 
     // cout << "replaced tag: " << blocks[minIdx].tag << endl;
 
-    alloc(minIdx, tag, Timer(minTime));
+    alloc(minIdx, tag, timer);
 
     return minIdx;
 }
