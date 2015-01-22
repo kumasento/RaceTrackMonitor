@@ -136,9 +136,11 @@ CacheIdx Cache::replace(Addr addr, Timer timer) {
         }
 
     if (!has_valid) {
+/*
 #ifdef DEBUG
         cout << "[Monitor] Cache use replace algorithm" << endl;
 #endif
+*/
         // find the minimal time
         // GODDAMN NAIVE
         for (int i = 0; i < numLine; i++)

@@ -10,6 +10,7 @@ using namespace std;
 
 void Event::print() 
 {
+/*
 #ifdef DEBUG
     cout << "[Event] opcode: " 
          << ((op == Read) ? "READ" : "WRITE") 
@@ -19,6 +20,7 @@ void Event::print()
          << tick
          << endl;
 #endif
+*/
 }
 
 // try with K&R braces
@@ -54,9 +56,11 @@ void Scheduler::schedule(Event e)
 
     cur_timer.assign(max(trace_time, cur_time));
 
+/*
 #ifdef DEBUG
     cout << "[Schedule] Task Scheduled: " << cur_timer.time << " ticks" << endl;
 #endif
+*/
     if (e.op == Read) 
         cur_timer = monitor.cache_read(e.addr, cur_timer);
     else if (e.op == Write)
@@ -66,10 +70,11 @@ void Scheduler::schedule(Event e)
         // Exception
     }
 
-
+/*
 #ifdef DEBUG
     cout << "[Schedule] Task Finished: " << cur_timer.time << " ticks" << endl;
 #endif
+*/
 }
 
 void Scheduler::run(string file_name) 

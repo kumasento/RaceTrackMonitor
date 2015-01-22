@@ -24,6 +24,7 @@ RTCoord Monitor::translate(CacheIdx idx) {
     int gid = dim3.s / range;
     int pos = (dim3.s % range) * cache.numLine + dim3.l;
 
+/*
 #ifdef DEBUG 
     cout << "[Monitor] Translate: "
          << "(" << dim3.s 
@@ -36,7 +37,7 @@ RTCoord Monitor::translate(CacheIdx idx) {
          << " range: " << range
          << endl;
 #endif
-
+*/
     return RTCoord(pos, gid);
 }
 
@@ -44,6 +45,7 @@ RTCoord Monitor::translate(CacheIdx idx) {
 Timer Monitor::cache_read(Addr addr, Timer timer) {
     CacheIdx idx = cache.search(addr);
 
+/*
 #ifdef DEBUG
     cout << "[Monitor] Cache Read: " 
         << addr 
@@ -52,17 +54,21 @@ Timer Monitor::cache_read(Addr addr, Timer timer) {
         << " Timer: " << timer.time
         << endl;
 #endif
+*/
     if (idx == -1) {
         idx = cache.replace(addr, timer);
         // update cache content
         timer = cache.access(idx, timer);
         timer = rt_write(translate(idx), timer);
-    #ifdef DEBUG
+/*  
+  #ifdef DEBUG
         cout << "[Monitor] Cache Replaced: " 
              << idx 
              << " Timer: " << timer.time
              << endl;
     #endif
+*/
+
     }
 
     timer = cache.access(idx, timer);

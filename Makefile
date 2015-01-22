@@ -5,7 +5,7 @@ SRC=src
 UTILDIR=utils
 
 WALL=
-DEFINE=-DDEBUG
+DEFINE=
 
 CXX=g++
 CC=gcc
