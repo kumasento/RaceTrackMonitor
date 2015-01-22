@@ -23,6 +23,7 @@ struct RTGroup {
     vector<RTPortPos> w;
     vector<RTPortPos> rw;
 
+    RTGroup() {}
     RTGroup(vector<RTPortPos> r, 
             vector<RTPortPos> w,
             vector<RTPortPos> rw);
@@ -31,6 +32,10 @@ struct RTGroup {
     RTPos toStdPos(RTPos trackPos) { return trackPos + head; }
     RTPortPos findPort(RTPos pos, RTPortType type);
     RTPortPos findMinDis(RTPos pos, vector<RTPortPos> ports);
+
+    void move(RTPos src, RTPos dst);
+
+    void print();
 };
 
 struct RTCoord {

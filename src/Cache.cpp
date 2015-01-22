@@ -123,17 +123,34 @@ CacheIdx Cache::replace(Addr addr, Timer timer) {
     CacheIdx minIdx = toIdx(CacheDim3(set, 0, 0));
     TimeType minTime = blocks[minIdx].access_time;
 
-    // find the minimal time
-    // GODDAMN NAIVE
-    for (int i = 0; i < numLine; i++)
-        for (int j = 0; j < numBlock; j++) {
+    bool has_valid = false;
+
+    // first check invalid position
+    for (int i = 0; i < numLine && !has_valid; i++) 
+        for (int j = 0; j < numBlock && !has_valid; j++) {
             CacheIdx idx = toIdx(CacheDim3(set, i, j));
-            TimeType t = blocks[idx].access_time;
-            if (minTime > t) {
-                minTime = t;
+            if (!blocks[idx].valid) {
+                has_valid = true;
                 minIdx = idx;
             }
         }
+
+    if (!has_valid) {
+#ifdef DEBUG
+        cout << "[Monitor] Cache use replace algorithm" << endl;
+#endif
+        // find the minimal time
+        // GODDAMN NAIVE
+        for (int i = 0; i < numLine; i++)
+            for (int j = 0; j < numBlock; j++) {
+                CacheIdx idx = toIdx(CacheDim3(set, i, j));
+                TimeType t = blocks[idx].access_time;
+                if (minTime > t) {
+                    minTime = t;
+                    minIdx = idx;
+                }
+            }
+    }
 
     // cout << "replaced tag: " << blocks[minIdx].tag << endl;
 
@@ -143,12 +160,10 @@ CacheIdx Cache::replace(Addr addr, Timer timer) {
 }
 
 Timer Cache::access(CacheIdx idx, Timer timer) {
-    // do the racetrack
-    //
-
 
     blocks[idx].access_time = timer.time; // update the latest access time
 
+    timer.update(1000); // each time of access
     return timer;
 }
 
@@ -176,8 +191,6 @@ Timer Cache::write(Addr addr, Timer timer) {
     if (idx == -1) {
         cout << "Miss" << endl;
         idx = replace(addr, timer);     
-    
-        
     }
     else
         cout << "Hit" << endl;

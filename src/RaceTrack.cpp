@@ -10,20 +10,46 @@ RTGroup::RTGroup(vector<RTPortPos> r,
                  vector<RTPortPos> w,
                  vector<RTPortPos> rw) {
     head = 0;
-    copy(this->r.begin(), this->r.end(), r.begin());
-    copy(this->w.begin(), this->w.end(), w.begin());
-    copy(this->rw.begin(), this->rw.end(), rw.begin());
+    
+    this->r.insert(this->r.end(), r.begin(), r.end());
+    this->w.insert(this->w.end(), w.begin(), w.end());
+    this->rw.insert(this->rw.end(), rw.begin(), rw.end());
 }
 
+void RTGroup::move(RTPos src, RTPos dst) 
+{
+    int dist = dst - src;
+    head += dist;
+}
+
+void RTGroup::print() 
+{
+#ifdef DEBUG
+    cout << "[RaceTrack] Group stats:" << endl
+         << "head:\t" << head << endl
+         << "ports:" << endl;
+    cout << "=>read: ";
+    for (int i = 0; i < r.size(); i++) cout << r[i] << ' ';
+    cout << endl;
+    cout << "=>write: ";
+    for (int i = 0; i < w.size(); i++) cout << w[i] << ' ';
+    cout << endl;
+    cout << "=>read/write: ";
+    for (int i = 0; i < rw.size(); i++) cout << rw[i] << ' ';
+    cout << endl;
+#endif
+}
+
+// pos is track pos
 RTPortPos RTGroup::findMinDis(RTPos pos, vector<RTPortPos> ports) {
-    RTPos aligned = toStdPos(pos); 
+    RTPos stdpos = toStdPos(pos);
 
     RTPos minPos;
     RTPos minDis = -1;
     
-    for (int i = 0; i < w.size(); i++) {
-        RTPortPos port = w[i];
-        RTPos dis = abs(port - aligned);
+    for (int i = 0; i < ports.size(); i++) {
+        RTPortPos port = ports[i];
+        RTPos dis = abs(port - stdpos);
         if (minDis == -1 || minDis > dis) {
             minDis = dis;
             minPos = port;
@@ -61,9 +87,11 @@ RaceTrack::RaceTrack(int numDomain,
     this->numGroup = size / (numTrack * numDomain);
 
     this->shiftTime = shiftTime;
+    
+    groups.resize(numGroup);
 
     for (int i = 0; i < numGroup; i ++)
-        groups.push_back(RTGroup(r, w, rw));
+        groups[i] = RTGroup(r, w, rw);
 }
 
 Timer RaceTrack::move(RTPos src, RTPos dst, int gid, Timer timer) {
@@ -71,6 +99,7 @@ Timer RaceTrack::move(RTPos src, RTPos dst, int gid, Timer timer) {
     int d = abs(nd);
 
     timer.update(shiftTime * d);
+
     groups[gid].head += nd;
 
     return timer;
@@ -83,12 +112,31 @@ Timer RaceTrack::access(RTPos pos, int gid, RTPortType type, Timer timer) {
         // exception
     }
 
+#ifdef DEBUG
+    cout << "[Monitor] RaceTrack Access" 
+         << " track head: " << groups[gid].head
+         << " pos: " << pos
+         << " gid: " << gid
+         << " size: " << groups.size()
+         << " time: " << timer.time
+         << endl;
+#endif
+    // Here pos is the Track position
+    // findPort should take track as param
+
     RTPos dst = groups[gid].findPort(pos, type);
     RTPos src = groups[gid].toStdPos(pos);
 
     timer = move(src, dst, gid, timer);
-
     // here should insert some move back method;
+#ifdef DEBUG
+    cout << "[Monitor] RaceTrack Access" 
+         << " track head: " << groups[gid].head
+         << " dst: " << dst
+         << " src: " << src
+         << " time: " << timer.time
+         << endl;
+#endif
 
     return timer;
 }

@@ -52,7 +52,7 @@ void Scheduler::schedule(Event e)
     TimeType trace_time = e.tick;
     TimeType cur_time = cur_timer.time;
 
-    cur_timer.update(max(trace_time, cur_time));
+    cur_timer.assign(max(trace_time, cur_time));
 
 #ifdef DEBUG
     cout << "[Schedule] Task Scheduled: " << cur_timer.time << " ticks" << endl;
@@ -65,6 +65,8 @@ void Scheduler::schedule(Event e)
     {
         // Exception
     }
+
+
 #ifdef DEBUG
     cout << "[Schedule] Task Finished: " << cur_timer.time << " ticks" << endl;
 #endif
@@ -72,7 +74,7 @@ void Scheduler::schedule(Event e)
 
 void Scheduler::run(string file_name) 
 {
-    fstream trace(file_name, ios::in);
+    fstream trace(file_name.c_str(), ios::in);
 
     while (!trace.eof()) {
         string opcode, addr_str, tick_str;
@@ -90,6 +92,7 @@ void Scheduler::run(string file_name)
         e.print();
 
         schedule(e);
+        
     }
 
     cout << cur_timer.time << endl;

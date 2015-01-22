@@ -1,14 +1,12 @@
 #ifndef _CACHE_H_
 #define _CACHE_H_
 
-#include <cstdint>
-
 #include "Timer.h"
 
 // tag bits couldn't be longer than 32bits
-typedef uint32_t CacheUnit;
+typedef unsigned CacheUnit;
 
-typedef uint32_t Addr;
+typedef unsigned Addr;
 
 struct CacheBlock {
     CacheUnit   valid;
